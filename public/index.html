@@ -1,0 +1,286 @@
+<html>
+<head>
+<link rel="stylesheet" href="./bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="./main.css"> 
+<script type="text/javascript" src="./bootstrap/jquery/jquery-1.10.2.min.js"></script>
+<script type="text/javascript" src="./bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="./underscore-min.js"></script>
+
+<link rel="stylesheet" href="./css/jquery.gritter.css" />
+<script src="./js/jquery.gritter.js"></script>
+
+</head>
+<body>
+<div class="container">
+<div class="col-xs-12">
+	<div class="col-sm-10">
+		<h1 style="text-align: center;">PlayBooks</h1>
+	</div>
+	<div class="col-sm-2 pull-right login_btn" style="margin-top: 23px;">
+		<!-- Button trigger modal -->
+		<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#createPlayBook" style="background-color: #CFCFCF; border-color: #58585A;">
+		  Add
+		</button>
+
+
+
+				<!-- Modal -->
+				<div id="createPlayBook" class="modal fade" role="dialog">
+				  <div class="modal-dialog">
+
+					<!-- Modal content-->
+					<div class="modal-content">
+					  <div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">&times;</button>
+						<h4 class="modal-title">Create A playBook</h4>
+					  </div>
+					  <div class="modal-body">
+ 						Category Name:<input type="text" id="categoryName"/> <br/>
+						PlayBook Name:<input type="text" id="playBookName"/>
+					  </div>
+					  <div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+						<button type="button" id="careatePlayBook" class="btn btn-default" data-dismiss="modal">Save</button>
+					  </div>
+					</div>
+
+				  </div>
+				</div>
+
+
+				<!-- Update Modal -->
+				<div id="updatePlayBook" class="modal fade" role="dialog">
+				  <div class="modal-dialog">
+
+					<!-- Modal content-->
+					<div class="modal-content">
+					  <div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">&times;</button>
+						<h4 class="modal-title">Create A playBook</h4>
+					  </div>
+					  <div class="modal-body">
+ 						Category Name:<input type="text" id="updateCategoryName"/> <br/>
+						PlayBook Name:<input type="text" id="updatePlayBookName"/>
+										<input type="hidden" id="udpatePlayBookId"/>
+					  </div>
+					  <div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+						<button type="button" id="updatePlayBookOperation" class="btn btn-default" data-dismiss="modal">Save</button>
+					  </div>
+					</div>
+
+				  </div>
+				</div>
+
+
+	</div>
+
+
+	<ul class="thumbnails" style="margin-top: 142px;">
+		<li class="col-sm-4">
+			<div class="fff">
+				<div style="text-align: right">
+					<h1>Business</h1>
+					<ul style="margin-left:140px;" id="businessPlayBookList">
+					</ul>
+				</div>
+				
+			</div>
+		</li>
+
+		<li class="col-sm-4">
+			<div class="fff">
+				<div style="text-align: right">
+					<h1>Technology</h1>
+						<ul style="margin-left:140px;" id="technologyPlayBooks" >
+						</ul>
+				</div>
+				
+			</div>
+		</li>
+
+		<li class="col-sm-4">
+			<div class="fff">
+				<div style="text-align: right">
+					<h1>Sales</h1>
+						<ul style = "margin-left:140px;" id="salesPlayBooks">
+							</ul>
+				</div>
+				
+			</div>
+		</li>
+		
+	</ul>
+
+
+</body>
+</html> 
+
+<script>
+jQuery(document).ready(function(){
+
+//When  delete icon is clicked.
+jQuery("body").on('click','.glyphicon-trash',function(){
+	var playBookIdToBeDeleted =	jQuery(this).parent().attr("id")
+
+	jQuery.ajax({
+		url: '/playbook/' + playBookIdToBeDeleted,
+		type: 'DELETE',
+		success: function(response){
+			console.log("PlayBook has been deleted successfully.")
+			// gritter
+			jQuery("#"+playBookIdToBeDeleted).remove()
+			jQuery.gritter.add({
+					  // heading of the notification
+					  title: '',
+					  // the text inside the notification
+					  text: 'PlayBook has been deleted successfully',
+					  sticky: false
+					});
+		},
+		error: function(err){
+			console.log("Issue in deleting the playbook: "+err)		
+		}
+		
+		
+	})
+});
+
+
+//When  update icon is clicked.
+jQuery("body").on('click','.glyphicon-pencil',function(){
+	jQuery("#updatePlayBook").modal('show');
+
+	var categoryName =	jQuery(this).attr("data-category")
+	var playBookId =	jQuery(this).attr("data-id")
+	var playBookName =	jQuery(this).attr("data-name")
+
+	jQuery("#updateCategoryName").val(categoryName);
+	jQuery("#updatePlayBookName").val(playBookName);
+	jQuery("#udpatePlayBookId").val(playBookId);
+	
+});
+
+
+// Update playbook details
+
+jQuery("#updatePlayBookOperation").click(function(){
+
+	var categoryName =	jQuery("#updateCategoryName").val()
+	var playBookId =	jQuery("#udpatePlayBookId").val()
+	var playBookName =	jQuery("#updatePlayBookName").val()
+
+	var data = {
+				name: playBookName,
+				category: categoryName
+				};
+
+	jQuery.ajax({
+		url: '/playbook/' + playBookId,
+		type: 'PUT',
+		data: data,
+		success: function(response){
+			console.log("PlayBook has been updated successfully.")
+			// gritter
+			jQuery.gritter.add({
+					  // heading of the notification
+					  title: '',
+					  // the text inside the notification
+					  text: 'PlayBook has been updated successfully',
+					  sticky: false
+					});
+		},
+		error: function(err){
+			console.log("Issue in updating the playbook: "+err)		
+		}	
+	})
+
+})
+
+// When the page loads, get all playbook details and display in the UI
+			jQuery.ajax({
+				url: '/playbook/all',
+				type: 'get',
+				success: function(playbooks){
+					//console.log(playbooks)
+
+					var businessPlayBooks = _.where(playbooks, {category:"Business"})
+					console.log(businessPlayBooks)
+					if(businessPlayBooks.length > 0){
+					    var busnessPlayBooksHtml='' ;
+						for(var i=0;i<businessPlayBooks.length;i++){	
+								console.log(businessPlayBooks[i].name)
+								busnessPlayBooksHtml += '<li id="'+businessPlayBooks[i]._id +'" class="col-sm-14"><a href="#">' + businessPlayBooks[i].name+'</a>&nbsp; <span data-category="' + businessPlayBooks[i].category +'"  data-id="' + businessPlayBooks[i]._id +'" data-name="' + businessPlayBooks[i].name + '" class="glyphicon glyphicon-pencil"></span>&nbsp;<span class="glyphicon glyphicon-trash"></span></li>';
+						}
+
+						jQuery("#businessPlayBookList").append(busnessPlayBooksHtml)
+					}
+
+					var technologyPlayBooks = _.where(playbooks, {category:"Technology"})
+					console.log(technologyPlayBooks);
+					if(technologyPlayBooks.length > 0){
+							var technologyPlayBooksHtml = '';
+							for(var i=0;i<technologyPlayBooks.length;i++){
+										console.log(technologyPlayBooks[i].name);
+										technologyPlayBooksHtml += '<li id="'+technologyPlayBooks[i]._id +'" class="col-sm-12"><a href="#">' + technologyPlayBooks[i].name+'</a>&nbsp; <span data-category="' + technologyPlayBooks[i].category +'"  data-id="' + technologyPlayBooks[i]._id +'" data-name="' + technologyPlayBooks[i].name + '" class="glyphicon glyphicon-pencil"></span>&nbsp;<span class="glyphicon glyphicon-trash"></span></li>';
+							}
+								jQuery("#technologyPlayBooks").append(technologyPlayBooksHtml)
+
+					}
+
+					var salesPlayBooks = _.where(playbooks, {category:"Sales"})
+					console.log(salesPlayBooks);
+
+					if(salesPlayBooks.length > 0){
+						var salesPlayBooksHtml = '';
+						for(var i=0;i<salesPlayBooks.length;i++){
+								console.log(salesPlayBooks[i].name);
+								salesPlayBooksHtml += '<li id="'+salesPlayBooks[i]._id +'" class="col-sm-18"><a href="#">' + salesPlayBooks[i].name +'</a>&nbsp; <span data-category="' + salesPlayBooks[i].category +'"  data-id="' + salesPlayBooks[i]._id +'" data-name="' + salesPlayBooks[i].name + '" class="glyphicon glyphicon-pencil"></span>&nbsp;<span class="glyphicon glyphicon-trash"></span></li>';
+						}
+						 jQuery("#salesPlayBooks").append(salesPlayBooksHtml)
+					}
+				},
+				error: function(err){
+		
+				}
+
+			});
+
+
+// When category name & playbook name are fed, create the playbook.
+		jQuery("#careatePlayBook").click(function(){
+
+			var data = {
+				categoryName : jQuery("#categoryName").val(),
+				playBookName : jQuery("#playBookName").val()	
+			}
+			jQuery.ajax({
+				url: '/playbook',
+				data: data,
+				type: 'post',
+				success: function(response){
+					console.log(response)
+
+					var playBooksHtml = '<li id="'+response._id +'" class="col-sm-10"><a href="#">' + response.name+'</a>&nbsp; <span class="glyphicon glyphicon-pencil"></span>&nbsp;<span class="glyphicon glyphicon-trash"></span></li>';
+
+						var categoryName = response.category.toLowerCase() + "PlayBooks";
+						jQuery("#"+categoryName).append(playBooksHtml)
+
+					jQuery.gritter.add({
+					  // heading of the notification
+					  title: '',
+					  // the text inside the notification
+					  text: 'PlayBook has been created successfully',
+					  sticky: false
+					});
+				},
+				error: function(err){
+		
+				}
+			});
+
+
+		})
+});
+
+</script>
